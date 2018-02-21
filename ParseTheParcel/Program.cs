@@ -13,7 +13,8 @@ namespace ParseTheParcel
                 .BuildServiceProvider();
 
             var parser = serviceProvider.GetService<IParsingService>();
-            parser.parseParcel(args);
+            var result = parser.ParseParcel(args);
+            Console.WriteLine(result);
         }
     }
 }

@@ -4,13 +4,12 @@ namespace ParseTheParcel.Services
 {
     public class ParsingService : IParsingService
     {
-        public void parseParcel(string[] dimensionsAndWeight)
+        public string ParseParcel(string[] dimensionsAndWeight)
         {
             if (dimensionsAndWeight.Length != 4)
             {
-                Console.WriteLine("Please enter the dimensions and weight of the package in millimeters and kilograms, respectively.");
-                Console.WriteLine("Usage: xxx <length> <breadth> <height> <weight>");
-                return;
+                return "Please enter the dimensions and weight of the package in millimeters and kilograms, respectively.\n" +
+                    "Usage: dotnet run <length> <breadth> <height> <weight>";
             }
             
             double length, breadth, height, weight;
@@ -22,11 +21,10 @@ namespace ParseTheParcel.Services
             var areAllValuesParsed = isLengthParsed && isBreadthParsed && isHeightParsed && isWeightParsed;
             if (!areAllValuesParsed)
             {
-                Console.WriteLine("Please ensure all values are numeric.");
-                return;
+                return "Please ensure all values are numeric.";
             }
 
-            Console.WriteLine($"{length}, {breadth}, {height}, {weight}");
+            return $"{length}, {breadth}, {height}, {weight}";
         }
     }
 }

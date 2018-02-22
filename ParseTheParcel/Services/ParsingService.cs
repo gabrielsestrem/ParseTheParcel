@@ -1,30 +1,58 @@
 ﻿using System;
+using ParseTheParcel.Exceptions;
+using ParseTheParcel.Factories;
 
 namespace ParseTheParcel.Services
 {
     public class ParsingService : IParsingService
     {
+        private readonly IParcelFactory parcelFactory;
+        private readonly IWeighingService weighingService;
+        private readonly IPricingService pricingService;
+
+        public ParsingService(IParcelFactory parcelFactory, IWeighingService weighingService, IPricingService pricingService)
+        {
+            this.parcelFactory = parcelFactory;
+            this.weighingService = weighingService;
+            this.pricingService = pricingService;
+        }
+
         public string ParseParcel(string[] dimensionsAndWeight)
         {
-            if (dimensionsAndWeight.Length != 4)
+            try
             {
-                return "Please enter the dimensions and weight of the package in millimeters and kilograms, respectively.\n" +
+                var parcel = parcelFactory.CreateParcel(dimensionsAndWeight);
+
+                if (weighingService.IsOverMaxWeight(parcel))
+                {
+                    var maxWeight = weighingService.GetMaxWeight();
+                    return $"Parcels heavier than {maxWeight}kg cannot be shipped.";
+                }
+
+                if (pricingService.IsOverMaxSize(parcel))
+                {
+                    var maxDimensions = pricingService.GetMaxDimensions();
+                    // Print in length, breadth, height order of size for conistency with question.
+                    return $"Parcels larger than {maxDimensions.MidDimension}mm x {maxDimensions.LongDimension}mm x " +
+                        $"{maxDimensions.ShortDimension}mm cannot be shipped.";
+                }
+
+                var cost = pricingService.CalculateShippingCost(parcel);
+                return $"Cost to ship parcel: ${cost.ToString("#,0.00")}";
+            }
+            catch (InvalidNumberOfArgumentsException)
+            {
+                return "Please enter all three dimensions of the parcel and its weight.\n" +
                     "Usage: dotnet run <length> <breadth> <height> <weight>";
             }
-            
-            double length, breadth, height, weight;
-            var isLengthParsed = Double.TryParse(dimensionsAndWeight[0], out length);
-            var isBreadthParsed = Double.TryParse(dimensionsAndWeight[1], out breadth);
-            var isHeightParsed = Double.TryParse(dimensionsAndWeight[2], out height);
-            var isWeightParsed = Double.TryParse(dimensionsAndWeight[3], out weight);
-
-            var areAllValuesParsed = isLengthParsed && isBreadthParsed && isHeightParsed && isWeightParsed;
-            if (!areAllValuesParsed)
+            catch (InvalidArgumentTypeException)
             {
-                return "Please ensure all values are numeric.";
+                return "Please enter only numeric values.";
             }
-
-            return $"{length}, {breadth}, {height}, {weight}";
+            catch (InvalidArgumentValueException)
+            {
+                return "Please enter values greater than 0.";
+            }
         }
     }
 }

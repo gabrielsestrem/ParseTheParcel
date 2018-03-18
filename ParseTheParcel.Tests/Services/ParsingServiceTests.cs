@@ -109,6 +109,26 @@ namespace ParseTheParcel.Tests.Services
         }
 
         [Fact]
+        public void ParseParcel_ShouldReturnMaxDimensionsMessageIfPricingServiceReturnsNullCost()
+        {
+            // Given
+            var parcel = new Parcel(new Dimensions(100, 150, 200), 26);
+            var maxDimensions = new Dimensions(90, 140, 190);
+            mockParcelFactory.Setup(pf => pf.CreateParcel(It.IsAny<string[]>()))
+                .Returns(parcel);
+            mockWeighingService.Setup(ws => ws.IsOverMaxWeight(parcel)).Returns(false);
+            mockPricingService.Setup(ps => ps.IsOverMaxSize(parcel)).Returns(false);
+            mockPricingService.Setup(ps => ps.CalculateShippingCost(parcel)).Returns((decimal?)null);
+            mockPricingService.Setup(ps => ps.GetMaxDimensions()).Returns(maxDimensions);
+
+            // When
+            var result = parsingService.ParseParcel(new string[] {});
+
+            // Then
+            Assert.Contains("larger than 140mm x 190mm x 90mm cannot be shipped", result);
+        }
+
+        [Fact]
         public void ParseParcel_ShouldReturnShippingCostMessage()
         {
             // Given

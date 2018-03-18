@@ -31,14 +31,16 @@ namespace ParseTheParcel.Services
 
                 if (pricingService.IsOverMaxSize(parcel))
                 {
-                    var maxDimensions = pricingService.GetMaxDimensions();
-                    // Print in length, breadth, height order of size for conistency with question.
-                    return $"Parcels larger than {maxDimensions.MidDimension}mm x {maxDimensions.LongDimension}mm x " +
-                        $"{maxDimensions.ShortDimension}mm cannot be shipped.";
+                    return GetOverMaxSizeMessage();
                 }
 
                 var cost = pricingService.CalculateShippingCost(parcel);
-                return $"Cost to ship parcel: ${cost.ToString("#,0.00")}";
+                if (cost == null)
+                {
+                    return GetOverMaxSizeMessage();
+                }
+
+                return $"Cost to ship parcel: ${cost.Value.ToString("#,0.00")}";
             }
             catch (InvalidNumberOfArgumentsException)
             {
@@ -53,6 +55,15 @@ namespace ParseTheParcel.Services
             {
                 return "Please enter values greater than 0.";
             }
+        }
+
+        private string GetOverMaxSizeMessage()
+        {
+            var maxDimensions = pricingService.GetMaxDimensions();
+
+            // Print in length, breadth, height order of size for conistency with question.
+            return $"Parcels larger than {maxDimensions.MidDimension}mm x {maxDimensions.LongDimension}mm x " +
+                $"{maxDimensions.ShortDimension}mm cannot be shipped.";
         }
     }
 }

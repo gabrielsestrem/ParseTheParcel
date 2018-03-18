@@ -1,32 +1,26 @@
+using System.Linq;
 using ParseTheParcel.Models;
 
 namespace ParseTheParcel.Services
 {
     public class PricingService : IPricingService
     {
-        public decimal CalculateShippingCost(Parcel parcel)
+        public decimal? CalculateShippingCost(Parcel parcel)
         {
-            var smallParcelPricer = new ParcelPricer(ParcelSizes.Small);
-            var mediumParcelPricer = new ParcelPricer(ParcelSizes.Medium);
-            var largeParcelPricer = new ParcelPricer(ParcelSizes.Large);
+            var sizesInAscendingOrder = ParcelSizes.GetParcelSizesInAscendingOrder();
+            var parcelSize = sizesInAscendingOrder.FirstOrDefault(ps => ps.Dimensions.IsLargerOrEqualToInEveryDimensionThan(parcel.Dimensions));
 
-            smallParcelPricer.SetNextSizeUpPricer(mediumParcelPricer);
-            mediumParcelPricer.SetNextSizeUpPricer(largeParcelPricer);
-
-            // Relying on IsOverMaxSize being called first to avoid throwing an exception,
-            // perhaps could be a neater way.
-            return smallParcelPricer.GetCostFromSize(parcel).Value;
+            return parcelSize?.Cost;
         }
 
         public bool IsOverMaxSize(Parcel parcel)
         {
-            var largeParcelPricer = new ParcelPricer(ParcelSizes.Large);
-            return !largeParcelPricer.GetCostFromSize(parcel).HasValue;
+            return !GetMaxDimensions().IsLargerOrEqualToInEveryDimensionThan(parcel.Dimensions);
         }
 
         public Dimensions GetMaxDimensions()
         {
-            return ParcelSizes.Large.Dimensions;
+            return ParcelSizes.GetParcelSizesInAscendingOrder().Last().Dimensions;
         }
     }
 }

@@ -119,13 +119,16 @@ namespace ParseTheParcel.Tests.Services
         }
 
         [Fact]
-        public void CalculateShippingCost_ShouldThrowIfParcelLargerThanLargeDimensions()
+        public void CalculateShippingCost_ShouldReturnNullIfParcelLargerThanLargeDimensions()
         {
             // Given
             var parcel = new Parcel(new Dimensions(251, 401, 601), 5);
 
             // When
-            Assert.Throws<InvalidOperationException>(() => pricingService.CalculateShippingCost(parcel));
+            var result = pricingService.CalculateShippingCost(parcel);
+
+            // Then
+            Assert.Null(result);
         }
     }
 }
